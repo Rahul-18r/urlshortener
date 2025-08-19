@@ -1,54 +1,48 @@
-# URL Shortener Service (Spring Boot)
+# 🔗 URL Shortener Service (Spring Boot + Thymeleaf)
 
-Build a web application similar to Bitly or TinyURL. Users submit a long URL and receive a unique, shortened URL. When the short URL is accessed, the service redirects the user to the original long URL and tracks click counts.
-
-> Built as part of the **ProjectAI — URL Shortener Service** (Full-Stack Spring Boot, 94 tasks, *basic*).
-
----
+A simple web application (like Bitly or TinyURL) where users can shorten long URLs, get a unique short link, and track click statistics. This project includes both:
+- 🌐 A **Thymeleaf frontend** for end users
+- ⚡ A **REST API** for programmatic access
 
 ## ✨ Features
-- Shorten any valid long URL into a compact code (e.g., `https://your.app/abc123`).
-- **302 Found** redirect from short URL to original URL.
-- **Click tracking** for each short link.
-- RESTful API with JSON responses.
-- Basic frontend using **Thymeleaf** for submitting and viewing links.
-- Persistence via **Spring Data JPA** (H2 by default; can switch to MySQL/PostgreSQL).
-- Collision-safe short code generation (Base62-style).
-- Validation for URL format and optional expiration.
+- Shorten any valid long URL into a compact code (`http://localhost:8080/abc123`)
+- Redirect with **302 Found** to the original URL
+- Track **click counts** for each shortened link
+- REST API (JSON) and Thymeleaf frontend
+- Custom alias support
+- Optional expiration for shortened URLs
+- Persistence with **Spring Data JPA** (H2 in dev, MySQL/PostgreSQL in prod)
 
-## 🎯 Learning Outcomes (from ProjectAI)
-- Core Spring Boot concepts (MVC, REST Controllers)
+## 🎯 Learning Outcomes
+Built as part of **ProjectAI** → *URL Shortener Service* (94 tasks, Full-Stack Spring Boot).  
+You’ll gain practical experience with:
+- Spring Boot MVC & REST Controllers
 - Spring Data JPA for database interaction
-- HTTP status codes (especially **302** for redirection)
+- HTTP status codes (`302 Found`)
 - Algorithm design for generating **unique short codes**
-- Basic frontend integration with **Thymeleaf**
-
----
+- Basic frontend integration using **Thymeleaf**
 
 ## 🧰 Tech Stack
 - **Java 17+**
 - **Spring Boot 3.x**
 - **Spring Data JPA**
 - **H2 Database** (dev) / MySQL or PostgreSQL (prod)
-- **Maven** (or Gradle)
+- **Thymeleaf** (frontend)
+- **Maven** (build tool)
 
----
-
-## 🚀 Getting Started (Local, no Docker)
+## 🚀 Getting Started (No Docker)
 
 ### Prerequisites
 - Java 17+
-- Maven 3.9+ (or Gradle 8+)
+- Maven 3.9+
 - Git
 
-### Clone
-```bash
-git clone <your-repo-url>.git
+### Clone Repository
+git clone https://github.com/<your-username>/url-shortener.git  
 cd url-shortener
-Configuration
 
-Default: H2 in-memory database.
-Optional src/main/resources/application.yml:
+### Configuration
+By default, the project uses an **in-memory H2 database**. To customize, edit `src/main/resources/application.yml`:
 
 server:
   port: 8080
@@ -69,91 +63,67 @@ spring:
       path: /h2-console
 
 app:
-  base-url: http://localhost:8080
+  base-url: http://localhost:8080/
   code-length: 7
   max-retries: 5
 
-Build & Run
-# Maven
-mvn clean package
-java -jar target/url-shortener-0.0.1-SNAPSHOT.jar
+### Build & Run
+mvn clean package  
+java -jar target/url-shortener-0.0.1-SNAPSHOT.jar  
+# Or run directly  
+mvn spring-boot:run  
 
-# Or run directly
-mvn spring-boot:run
+### Open
+- UI → http://localhost:8080/  
+- H2 Console → http://localhost:8080/h2-console  
 
+## 🧭 API Endpoints
 
-Open:
+### 1. Shorten a URL
+POST /api/v1/url/shorten  
+Request:  
+{ "url": "https://example.com/long/path", "customAlias": "myalias", "hoursToExpire": 24 }  
 
-UI → http://localhost:8080/
+Response (201 Created):  
+{ "shortUrl": "http://localhost:8080/myalias" }  
 
-H2 console (dev) → http://localhost:8080/h2-console
+### 2. Redirect
+GET /{shortCode} → Redirects with 302 Found  
+- ✅ Success → Redirect to original URL  
+- ❌ Errors → 404 Not Found (invalid code) or 410 Gone (expired)  
 
-🧭 API Endpoints
-1. Shorten a URL
+### 3. Get Stats
+GET /api/v1/url/stats/{shortCode}  
+Response:  
+{ "longUrl": "https://example.com/long/path", "shortUrl": "http://localhost:8080/myalias", "clicks": 42, "createdAt": "2025-08-19T12:00:00", "expiresAt": "2025-08-20T12:00:00" }  
 
-POST /api/v1/shorten
-Request:
+## 🖥️ Frontend (Thymeleaf)
+At `/`, users can:
+- Submit a long URL (with optional custom alias)
+- Receive a shortened link
+- View statistics by entering a short code
 
-{
-  "longUrl": "https://example.com/some/very/long/path",
-  "customCode": "myalias",
-  "expireAt": "2025-12-31T23:59:59Z"
-}
+The `index.html` page includes:
+- Form for URL shortening
+- Form for stats lookup
+- Display of results or error messages
 
+## ✅ Tests
+mvn test  
 
-Response 201 Created:
+## 📁 Project Structure
+src/main/java/com/example/urlshortener  
+ ├─ controller/        # PageController (Thymeleaf) + UrlController (REST)  
+ ├─ service/           # Business logic  
+ ├─ repository/        # Spring Data JPA repositories  
+ ├─ dto/               # Request/Response DTOs  
+ ├─ exception/         # Custom exceptions  
+ └─ UrlShortenerApplication.java  
 
-{
-  "code": "abc1234",
-  "shortUrl": "http://localhost:8080/abc1234",
-  "longUrl": "https://example.com/some/very/long/path",
-  "clicks": 0
-}
+src/main/resources/  
+ ├─ templates/         # Thymeleaf templates (index.html)  
+ ├─ static/            # Static assets  
+ └─ application.yml    # Config  
 
-2. Redirect
-
-GET /{code} → 302 Found → redirects to long URL.
-Errors: 404 Not Found / 410 Gone
-
-3. Stats
-
-GET /api/v1/links/{code} → JSON stats about link.
-
-🖥️ Frontend (Thymeleaf)
-
-Basic form at / for submitting long URLs.
-
-Displays shortened link + copy button.
-
-Table view of recent links with click counts.
-
-✅ Tests
-
-Run:
-
-mvn test
-
-
-Includes:
-
-Service tests
-
-Controller redirect tests
-
-Repository tests with H2
-
-📁 Project Structure
-src/main/java/...
-  └─ com.example.shortener
-       ├─ controller
-       ├─ service
-       ├─ repository
-       ├─ model
-       ├─ dto
-       └─ ShortenerApplication.java
-src/main/resources/
-  ├─ templates/
-  ├─ static/
-  └─ application.yml
-
-📜 License
+## 📜 License
+This project is licensed under the **MIT License**.
