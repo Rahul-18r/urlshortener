@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+                    <html lang="en" xmlns:th="http://www.thymeleaf.org">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>URL Shortener</title>
+                        <style>
+                            body {
+                                font-family: 'Segoe UI', Arial, sans-serif;
+                                background: #f4f6fb;
+                                margin: 0;
+                                padding: 0;
+                            }
+                            h1, h2, h3 {
+                                text-align: center;
+                                color: #2c3e50;
+                            }
+                            form {
+                                background: #fff;
+                                max-width: 500px;
+                                margin: 30px auto 20px auto;
+                                padding: 24px 32px;
+                                border-radius: 12px;
+                                box-shadow: 0 2px 12px rgba(44,62,80,0.08);
+                            }
+                            label {
+                                font-weight: 500;
+                                color: #34495e;
+                            }
+                            input[type="text"] {
+                                width: 100%;
+                                padding: 10px;
+                                margin: 8px 0 16px 0;
+                                border: 1px solid #bfc9d1;
+                                border-radius: 6px;
+                                font-size: 1em;
+                                transition: border-color 0.2s;
+                            }
+                            input[type="text"]:focus {
+                                border-color: #2980b9;
+                                outline: none;
+                            }
+                            input[type="submit"] {
+                                background: linear-gradient(90deg, #2980b9 0%, #6dd5fa 100%);
+                                color: #fff;
+                                border: none;
+                                padding: 10px 24px;
+                                border-radius: 6px;
+                                font-size: 1em;
+                                cursor: pointer;
+                                font-weight: 600;
+                                transition: background 0.2s;
+                            }
+                            input[type="submit"]:hover {
+                                background: linear-gradient(90deg, #6dd5fa 0%, #2980b9 100%);
+                            }
+                            .result {
+                                max-width: 500px;
+                                margin: 20px auto;
+                                padding: 18px 24px;
+                                border-radius: 10px;
+                                background: #eaf6ff;
+                                border: 1px solid #b3d8fd;
+                                color: #2c3e50;
+                                box-shadow: 0 1px 6px rgba(44,62,80,0.05);
+                            }
+                            .result[style] {
+                                background-color: #f8d7da !important;
+                                border-color: #f5c6cb !important;
+                                color: #721c24 !important;
+                            }
+                            a {
+                                color: #2980b9;
+                                text-decoration: none;
+                                font-weight: 500;
+                            }
+                            a:hover {
+                                text-decoration: underline;
+                            }
+                            hr {
+                                border: none;
+                                border-top: 1px solid #bfc9d1;
+                                margin: 40px 0;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>Welcome to the URL Shortener!</h1>
+                        <form th:action="@{/shorten-web}" method="POST">
+                            <div>
+                                <label for="longUrl">Enter a long URL to shorten:</label>
+                            </div>
+                            <div>
+                                <input type="text" id="longUrl" name="longUrl" size="50" placeholder="https://example.com/very/long/url" required>
+                            </div>
+                            <div>
+                                <label for="customAlias">Enter a custom alias (optional):</label>
+                            </div>
+                            <div>
+                                <input type="text" id="customAlias" name="customAlias" size="50" placeholder="e.g., my-awesome-event">
+                            </div>
+                            <div>
+                                <input type="submit" value="Shorten URL">
+                            </div>
+                        </form>
+                        <div class="result" th:if="${shortUrlResult != null}">
+                            <h2>Success! Here is your short URL:</h2>
+                            <p>
+                                Original URL:
+                                <span th:text="${originalUrl}">https://example.com/original-url-goes-here</span>
+                            </p>
+                            <p>
+                                Short URL:
+                                <a th:href="${shortUrlResult}" th:text="${shortUrlResult}" target="_blank">http://localhost:8080/short-url-goes-here</a>
+                            </p>
+                        </div>
+                        <hr>
+                        <h2>Check Link Statistics</h2>
+                        <form th:action="@{/check-stats}" method="POST">
+                            <div>
+                                <label for="checkShortCode">Enter a short code to check its stats:</label>
+                            </div>
+                            <div>
+                                <input type="text" id="checkShortCode" name="checkShortCode" size="20" placeholder="e.g., aB1cDe" required>
+                            </div>
+                            <div>
+                                <input type="submit" value="Check Stats">
+                            </div>
+                        </form>
+                        <div class="result" th:if="${urlStats != null}">
+                            <h3>Statistics</h3>
+                            <p><strong>Original URL:</strong> <span th:text="${urlStats.originalUrl}"></span></p>
+                            <p><strong>Short URL:</strong> <a th:href="${urlStats.shortUrl}" th:text="${urlStats.shortUrl}" target="_blank"></a></p>
+                            <p><strong>Created On:</strong> <span th:text="${#temporals.format(urlStats.creationDate, 'dd-MMM-yyyy HH:mm')}"></span></p>
+                            <p><strong>Total Clicks:</strong> <span th:text="${urlStats.clickCount}"></span></p>
+                        </div>
+                        <div class="result" style="background-color: #f8d7da; border-color: #f5c6cb;" th:if="${statsError != null}">
+                            <p style="color: #721c24;" th:text="${statsError}"></p>
+                        </div>
+                        <div class="result" style="background-color: #f8d7da; border-color: #f5c6cb;" th:if="${aliasError != null}">
+                            <p style="color: #721c24;" th:text="${aliasError}"></p>
+                        </div>
+                    </body>
+                    </html>
